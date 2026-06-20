@@ -1,4 +1,4 @@
-# MAB vs A/B — курсовая работа (CTR, рекомендательные системы)
+# Курсовая работа на тему "Алгоритм Многорукого Бандита (MAB) как альтернатива A/B тестированию"
 
 Воспроизводимый Python-проект: сравнение **фиксированного A/B-разбиения** и **адаптивных политик многорукого бандита** (ε-greedy, UCB1, Thompson Sampling, LinUCB) в постановке онлайн-эксперимента по CTR.
 
@@ -30,10 +30,10 @@ python -m pip install -r requirements.txt
 python -m pytest -q
 ```
 
-Полное воспроизведение основных экспериментов и рисунков:
+Полное воспроизведение основных экспериментов и графиков:
 
 ```powershell
-# Сначала данные (10k OBD для E2, E13, рис. 3.5):
+# Данные (10k OBD для E2, E13, рис. 3.5):
 python -m scripts.prepare_open_bandit --download --behavior-policy random --campaign all --include-context --output-path data/processed/obd_events.csv
 
 .\run_all.ps1
@@ -94,13 +94,3 @@ python -m src.experiments.obd_pair_selection --output-dir outputs/obd_pair
 - DR/CUPED описаны в тексте (§4.3), в коде не реализованы.
 - `FixedABPolicy` — только allocation; вывод — `src/ab_testing/`.
 
-## Git
-
-Репозиторий подготовлен к чистовой выкладке: `outputs/*` в `.gitignore`, кроме `outputs/figures/*.png`; OBD-CSV не коммитятся. После `git init`:
-
-```powershell
-.\scripts\git_init_clean.ps1
-git status
-```
-
-Коммит — вручную, когда будете готовы.
