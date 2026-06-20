@@ -1,0 +1,31 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Эксперименты (воспроизводятся run_all.ps1); рисунки для текста — в git
+outputs/*
+!outputs/figures/
+outputs/figures/*
+!outputs/figures/*.png
+
+# OBD: скачивать через scripts/prepare_open_bandit.py
+data/raw/obd_*.csv
+data/raw/full_obd/
+data/obd_full/
+data/processed/obd_events.csv
+data/processed/obd_*.csv
+data/processed/events.csv
+
+# Локальные черновики, журнал, сборка MD/DOCX (не в git)
+docs/internal/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/

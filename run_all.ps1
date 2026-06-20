@@ -1,0 +1,64 @@
+# Воспроизведение основных экспериментов курсовой (Windows PowerShell)
+# Запуск из корня репозитория: .\run_all.ps1
+#
+# Включает: pytest, E1/E2/E8b block (run_full_experiments), full_report,
+# E4, E11, E14, synthetic scenarios, E12, E13, figures.
+# E9 (full OBD streaming) — только если есть data/obd_full/ (долго, см. README).
+
+$ErrorActionPreference = "Stop"
+Set-Location $PSScriptRoot
+
+if (-not (Test-Path "data/processed/obd_events.csv")) {
+    Write-Host "WARN: data/processed/obd_events.csv not found. Run prepare_open_bandit first (see README)."
+}
+
+Write-Host "=== pytest ==="
+python -m pytest -q
+
+Write-Host "=== E1/E2/E8b block (run_full_experiments) ==="
+python -m src.experiments.run_full_experiments
+
+Write-Host "=== assemble report ==="
+python -m src.experiments.assemble_full_report --seeds 20
+
+Write-Host "=== E4 ab validity ==="
+python -m src.experiments.ab_validity --output-path outputs/ab_validity/summary_h20000.csv
+
+Write-Host "=== E11 inference (IPS-weighted) ==="
+python -m src.experiments.inference_solutions_validity --trials 100 --output-dir outputs/inference_valid
+
+Write-Host "=== E14 sequential ==="
+python -m src.experiments.sequential_validity_e14 --horizon 20000 --trials 200 --output-dir outputs/sequential_valid
+
+Write-Host "=== synthetic gap scenarios (E1 supplement) ==="
+python -m src.experiments.synthetic_scenarios --horizon 5000 --seeds 20 --output-dir outputs/synthetic_scenarios
+
+Write-Host "=== E12 pairwise product A/B ==="
+python -m src.experiments.product_ab_e12 --output-dir outputs/product_ab
+
+Write-Host "=== E13 OBD pairwise projection ==="
+python -m src.experiments.obd_pair_selection --output-dir outputs/obd_pair
+python -m src.experiments.obd_pairwise_ope --output-dir outputs/obd_pair
+
+$e9a = "data/obd_full/open_bandit_dataset/random/all/all.csv"
+$e9b = "data/obd_full/open_bandit_dataset/bts/all/all.csv"
+if ((Test-Path $e9a) -and (Test-Path $e9b)) {
+    Write-Host "=== E9a full random/all streaming OPE ==="
+    python -m src.experiments.obd_streaming_ope `
+        --input-path $e9a --behavior-policy random --campaign all `
+        --seeds 10 --chunksize 100000 `
+        --output-dir outputs/obd_full/e9a_random_all_full
+    Write-Host "=== E9b bts/all 1M streaming OPE ==="
+    python -m src.experiments.obd_streaming_ope `
+        --input-path $e9b --behavior-policy bts --campaign all `
+        --max-events 1000000 --seeds 10 --chunksize 100000 `
+        --output-dir outputs/obd_full/e9b_bts_all_1m
+} else {
+    Write-Host "=== E9 skipped (no data/obd_full/); see README for full OBD download ==="
+}
+
+Write-Host "=== figures ==="
+python -m scripts.generate_coursework_figures
+
+Write-Host "=== Done ==="
+Write-Host "Artifacts: outputs/extended_full/, outputs/figures/, outputs/inference_valid/, outputs/product_ab/, outputs/obd_pair/"
