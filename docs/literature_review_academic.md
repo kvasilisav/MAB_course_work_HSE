@@ -330,3 +330,5 @@ A/B-тестирование и MAB нельзя рассматривать ка
 [39] Ju N., Chen A., Arya V., Bu F., Gopalakrishnan N., He J., Pan J., Schmitz C., Weng Z. Experimentation Platform — Design and Methodological Considerations // Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining. 2019.
 
 [40] Kohavi R., Tang D., Xu Y. Trustworthy Online Controlled Experiments: A Practical Guide to A/B Testing. Cambridge University Press, 2020.
+
+[41] Hadad V., Hirshberg D. A., Zhan R., Wager S., Athey S. Confidence Intervals for Policy Evaluation in Adaptive Experiments // Proceedings of the National Academy of Sciences. 2021. Vol. 118. No. 15. e2014602118.
