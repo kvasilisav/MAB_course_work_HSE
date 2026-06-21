@@ -1,0 +1,13 @@
+scenario,method,rejection_rate,mean_p_value,trials,p_control,p_treatment,target_rate
+effect_0.060,ips_weighted_ab,0.24,0.33677180287703534,100,0.05,0.06,0.8
+effect_0.060,naive_ab_fixed_only,0.85,0.026638912361654804,100,0.05,0.06,0.8
+effect_0.060,naive_ab_full_ts,0.51,0.097680287488274,100,0.05,0.06,0.8
+effect_0.080,ips_weighted_ab,0.78,0.09051968408336566,100,0.05,0.08,0.8
+effect_0.080,naive_ab_fixed_only,1.0,4.806477438279444e-12,100,0.05,0.08,0.8
+effect_0.080,naive_ab_full_ts,0.96,0.012845665556966496,100,0.05,0.08,0.8
+effect_0.100,ips_weighted_ab,0.97,0.004641825668732818,100,0.05,0.1,0.8
+effect_0.100,naive_ab_fixed_only,1.0,0.0,100,0.05,0.1,0.8
+effect_0.100,naive_ab_full_ts,1.0,0.006837337869068194,100,0.05,0.1,0.8
+null,ips_weighted_ab,0.05,0.40362590115083075,100,0.05,0.05,0.05
+null,naive_ab_fixed_only,0.03,0.4799144009875937,100,0.05,0.05,0.05
+null,naive_ab_full_ts,0.1,0.4031751174241461,100,0.05,0.05,0.05

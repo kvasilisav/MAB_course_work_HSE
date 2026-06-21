@@ -1,0 +1,5 @@
+policy_name,final_cumulative_reward,final_cumulative_regret,suboptimal_share,dataset
+epsilon_greedy,211.6,38.39999999999766,0.62581,bernoulli_synthetic
+fixed_ab,197.45,52.54999999999542,0.80216,bernoulli_synthetic
+thompson_sampling,213.4,36.599999999998545,0.64432,bernoulli_synthetic
+ucb1,200.95,49.04999999999642,0.77225,bernoulli_synthetic

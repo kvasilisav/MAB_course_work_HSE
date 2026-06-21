@@ -1,0 +1,2 @@
+item_a,item_b,impressions_a,impressions_b,clicks_a,clicks_b,ctr_a,ctr_b,ctr_gap,top_k_pool,min_impressions,source
+41,50,136,136,1,1,0.007352941176470588,0.007352941176470588,0.0,20,100,data/raw/obd_random_all.csv

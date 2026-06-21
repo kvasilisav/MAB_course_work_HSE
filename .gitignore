@@ -7,16 +7,26 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Эксперименты (воспроизводятся run_all.ps1); рисунки и сводные CSV — в git
-outputs/*
+outputs/**
 !outputs/figures/
-outputs/figures/*
+!outputs/figures/**
 !outputs/figures/*.png
+
+!outputs/extended_full/
 !outputs/extended_full/*_summary.csv
 !outputs/extended_full/full_report.json
+
+!outputs/obd_pair/
 !outputs/obd_pair/*_summary.csv
 !outputs/obd_pair/pair_selection.csv
+
+!outputs/ab_validity/
 !outputs/ab_validity/summary_h20000.csv
+
+!outputs/inference_valid/
 !outputs/inference_valid/e11_summary.csv
+
+!outputs/sequential_valid/
 !outputs/sequential_valid/e14_summary.csv
 
 # OBD: скачивать через scripts/prepare_open_bandit.py

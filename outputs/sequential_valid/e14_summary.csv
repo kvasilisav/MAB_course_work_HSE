@@ -1,0 +1,17 @@
+scenario,policy,CTR_A,CTR_B,method,rejection_rate,mean_stop_fraction,target,n_trials
+null,fixed_ab,0.05,0.05,fixed_horizon,0.03,1.0,0.05,200
+null,fixed_ab,0.05,0.05,naive_peek,0.11,0.94875,0.05,200
+null,fixed_ab,0.05,0.05,group_sequential_obf,0.04,0.995,0.05,200
+null,fixed_ab,0.05,0.05,always_valid_msprt,0.02,0.98230325,0.05,200
+null,thompson_sampling,0.05,0.05,fixed_horizon,0.145,1.0,0.05,200
+null,thompson_sampling,0.05,0.05,naive_peek,0.21,0.89,0.05,200
+null,thompson_sampling,0.05,0.05,group_sequential_obf,0.145,0.98625,0.05,200
+null,thompson_sampling,0.05,0.05,always_valid_msprt,0.005,0.9990875,0.05,200
+effect,fixed_ab,0.05,0.06,fixed_horizon,0.85,1.0,0.8,200
+effect,fixed_ab,0.05,0.06,naive_peek,0.9,0.60875,0.8,200
+effect,fixed_ab,0.05,0.06,group_sequential_obf,0.855,0.79625,0.8,200
+effect,fixed_ab,0.05,0.06,always_valid_msprt,0.585,0.7419567499999999,0.8,200
+effect,thompson_sampling,0.05,0.06,fixed_horizon,0.55,1.0,0.8,200
+effect,thompson_sampling,0.05,0.06,naive_peek,0.66,0.685,0.8,200
+effect,thompson_sampling,0.05,0.06,group_sequential_obf,0.56,0.93,0.8,200
+effect,thompson_sampling,0.05,0.06,always_valid_msprt,0.01,0.9982905,0.8,200

@@ -1,0 +1,497 @@
+{
+  "config": {
+    "seeds": 20,
+    "horizon_contextual": 10000,
+    "horizon_e1": 5000,
+    "obd_rows_per_dataset": 10000,
+    "output_dir": "outputs/extended_full",
+    "small_run_dir": "outputs/extended",
+    "note": "Full small-OBD release (10k rows per dataset, 20 seeds). Pilot results preserved in outputs/extended/."
+  },
+  "e8b_contextual_synthetic_summary": [
+    {
+      "policy_name": "fixed_ab",
+      "final_cumulative_reward": 1950.8,
+      "final_cumulative_regret": 49.20000000000961,
+      "suboptimal_share": 0.7995099999999999,
+      "dataset": "contextual_synthetic"
+    },
+    {
+      "policy_name": "linucb",
+      "final_cumulative_reward": 1973.4,
+      "final_cumulative_regret": 26.60000000000465,
+      "suboptimal_share": 0.7768200000000001,
+      "dataset": "contextual_synthetic"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "final_cumulative_reward": 1971.7,
+      "final_cumulative_regret": 28.300000000006044,
+      "suboptimal_share": 0.8589800000000001,
+      "dataset": "contextual_synthetic"
+    }
+  ],
+  "e8b_contextual_synthetic_detail": [
+    {
+      "policy_name": "fixed_ab",
+      "final_cumulative_reward": 1950.8,
+      "final_cumulative_regret": 49.20000000000961,
+      "regret_std": 38.15563695680451,
+      "suboptimal_share": 0.7995099999999999
+    },
+    {
+      "policy_name": "linucb",
+      "final_cumulative_reward": 1973.4,
+      "final_cumulative_regret": 26.60000000000465,
+      "regret_std": 29.990173829375387,
+      "suboptimal_share": 0.7768200000000001
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "final_cumulative_reward": 1971.7,
+      "final_cumulative_regret": 28.300000000006044,
+      "regret_std": 33.179099318385134,
+      "suboptimal_share": 0.8589800000000001
+    }
+  ],
+  "e8_obd_batch_summary": [
+    {
+      "policy_name": "fixed_ab",
+      "final_cumulative_reward": 112.65,
+      "final_cumulative_regret": 232.17758620691615,
+      "suboptimal_share": 0.986985,
+      "dataset": "obd_random_all_batch"
+    },
+    {
+      "policy_name": "linucb",
+      "final_cumulative_reward": 119.25,
+      "final_cumulative_regret": 225.577586206916,
+      "suboptimal_share": 0.9800000000000001,
+      "dataset": "obd_random_all_batch"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "final_cumulative_reward": 131.3,
+      "final_cumulative_regret": 213.5275862069121,
+      "suboptimal_share": 0.97563,
+      "dataset": "obd_random_all_batch"
+    }
+  ],
+  "e8_obd_batch_detail": [
+    {
+      "policy_name": "fixed_ab",
+      "final_cumulative_reward": 112.65,
+      "final_cumulative_regret": 232.17758620691615,
+      "regret_std": 8.317862832801607,
+      "suboptimal_share": 0.986985
+    },
+    {
+      "policy_name": "linucb",
+      "final_cumulative_reward": 119.25,
+      "final_cumulative_regret": 225.577586206916,
+      "regret_std": 9.967711029015245,
+      "suboptimal_share": 0.9800000000000001
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "final_cumulative_reward": 131.3,
+      "final_cumulative_regret": 213.5275862069121,
+      "regret_std": 12.333522995224213,
+      "suboptimal_share": 0.97563
+    }
+  ],
+  "e1_synthetic_summary": [
+    {
+      "policy_name": "epsilon_greedy",
+      "final_cumulative_reward": 211.6,
+      "final_cumulative_regret": 38.39999999999766,
+      "suboptimal_share": 0.62581,
+      "dataset": "bernoulli_synthetic"
+    },
+    {
+      "policy_name": "fixed_ab",
+      "final_cumulative_reward": 197.45,
+      "final_cumulative_regret": 52.54999999999542,
+      "suboptimal_share": 0.80216,
+      "dataset": "bernoulli_synthetic"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "final_cumulative_reward": 213.4,
+      "final_cumulative_regret": 36.599999999998545,
+      "suboptimal_share": 0.64432,
+      "dataset": "bernoulli_synthetic"
+    },
+    {
+      "policy_name": "ucb1",
+      "final_cumulative_reward": 200.95,
+      "final_cumulative_regret": 49.04999999999642,
+      "suboptimal_share": 0.77225,
+      "dataset": "bernoulli_synthetic"
+    }
+  ],
+  "e1_synthetic_detail": [
+    {
+      "policy_name": "epsilon_greedy",
+      "final_cumulative_reward": 211.6,
+      "final_cumulative_regret": 38.39999999999766,
+      "regret_std": 29.948025152354784,
+      "suboptimal_share": 0.62581
+    },
+    {
+      "policy_name": "fixed_ab",
+      "final_cumulative_reward": 197.45,
+      "final_cumulative_regret": 52.54999999999542,
+      "regret_std": 11.958150710749859,
+      "suboptimal_share": 0.80216
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "final_cumulative_reward": 213.4,
+      "final_cumulative_regret": 36.599999999998545,
+      "regret_std": 14.065261424775645,
+      "suboptimal_share": 0.64432
+    },
+    {
+      "policy_name": "ucb1",
+      "final_cumulative_reward": 200.95,
+      "final_cumulative_regret": 49.04999999999642,
+      "regret_std": 12.189188479525923,
+      "suboptimal_share": 0.77225
+    }
+  ],
+  "ope_matrix": [
+    {
+      "policy_name": "epsilon_greedy",
+      "acceptance_rate": 0.012355,
+      "ips_estimate": 0.0004,
+      "snips_estimate": 0.00040322580645161003,
+      "effective_sample_size": 123.55,
+      "dataset": "random_all"
+    },
+    {
+      "policy_name": "fixed_ab",
+      "acceptance_rate": 0.01234,
+      "ips_estimate": 0.0028,
+      "snips_estimate": 0.002860316277139755,
+      "effective_sample_size": 123.4,
+      "dataset": "random_all"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "acceptance_rate": 0.01206,
+      "ips_estimate": 0.0048000000000000004,
+      "snips_estimate": 0.004931778003133295,
+      "effective_sample_size": 120.6,
+      "dataset": "random_all"
+    },
+    {
+      "policy_name": "ucb1",
+      "acceptance_rate": 0.0122,
+      "ips_estimate": 0.0,
+      "snips_estimate": 0.0,
+      "effective_sample_size": 122.0,
+      "dataset": "random_all"
+    },
+    {
+      "policy_name": "epsilon_greedy",
+      "acceptance_rate": 0.01246,
+      "ips_estimate": 0.0,
+      "snips_estimate": 0.0,
+      "effective_sample_size": 76.32496171214751,
+      "dataset": "bts_all"
+    },
+    {
+      "policy_name": "fixed_ab",
+      "acceptance_rate": 0.012280000000000001,
+      "ips_estimate": 0.001016579008896435,
+      "snips_estimate": 0.0023808916981375703,
+      "effective_sample_size": 57.61508569701617,
+      "dataset": "bts_all"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "acceptance_rate": 0.012320000000000001,
+      "ips_estimate": 7.1561616771805e-05,
+      "snips_estimate": 0.000223142908782855,
+      "effective_sample_size": 57.43283371556871,
+      "dataset": "bts_all"
+    },
+    {
+      "policy_name": "ucb1",
+      "acceptance_rate": 0.0125,
+      "ips_estimate": 0.0,
+      "snips_estimate": 0.0,
+      "effective_sample_size": 78.3405339120269,
+      "dataset": "bts_all"
+    },
+    {
+      "policy_name": "epsilon_greedy",
+      "acceptance_rate": 0.027765,
+      "ips_estimate": 0.013430000000000001,
+      "snips_estimate": 0.014205689759704414,
+      "effective_sample_size": 277.65,
+      "dataset": "random_men"
+    },
+    {
+      "policy_name": "fixed_ab",
+      "acceptance_rate": 0.02898,
+      "ips_estimate": 0.00476,
+      "snips_estimate": 0.00483732386439647,
+      "effective_sample_size": 289.8,
+      "dataset": "random_men"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "acceptance_rate": 0.029435,
+      "ips_estimate": 0.0045899999999999995,
+      "snips_estimate": 0.00456184141843564,
+      "effective_sample_size": 294.35,
+      "dataset": "random_men"
+    },
+    {
+      "policy_name": "ucb1",
+      "acceptance_rate": 0.027199999999999995,
+      "ips_estimate": 0.013599999999999998,
+      "snips_estimate": 0.0147058823529411,
+      "effective_sample_size": 272.00000000000006,
+      "dataset": "random_men"
+    },
+    {
+      "policy_name": "epsilon_greedy",
+      "acceptance_rate": 0.022135,
+      "ips_estimate": 0.00023,
+      "snips_estimate": 0.00022222222222222,
+      "effective_sample_size": 221.35000000000005,
+      "dataset": "random_women"
+    },
+    {
+      "policy_name": "fixed_ab",
+      "acceptance_rate": 0.02139,
+      "ips_estimate": 0.003909999999999999,
+      "snips_estimate": 0.004006954597325395,
+      "effective_sample_size": 213.9,
+      "dataset": "random_women"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "acceptance_rate": 0.021775,
+      "ips_estimate": 0.00414,
+      "snips_estimate": 0.00408180157636605,
+      "effective_sample_size": 217.75,
+      "dataset": "random_women"
+    },
+    {
+      "policy_name": "ucb1",
+      "acceptance_rate": 0.0225,
+      "ips_estimate": 0.0,
+      "snips_estimate": 0.0,
+      "effective_sample_size": 225.00000000000006,
+      "dataset": "random_women"
+    }
+  ],
+  "streaming_ope_matrix": [
+    {
+      "policy_name": "epsilon_greedy",
+      "acceptance_rate": 0.012355,
+      "ips_estimate": 0.0004,
+      "snips_estimate": 0.00040322580645161003,
+      "effective_sample_size": 123.55,
+      "dataset": "random_all"
+    },
+    {
+      "policy_name": "fixed_ab",
+      "acceptance_rate": 0.01234,
+      "ips_estimate": 0.0028,
+      "snips_estimate": 0.002860316277139755,
+      "effective_sample_size": 123.4,
+      "dataset": "random_all"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "acceptance_rate": 0.01206,
+      "ips_estimate": 0.0048000000000000004,
+      "snips_estimate": 0.004931778003133295,
+      "effective_sample_size": 120.6,
+      "dataset": "random_all"
+    },
+    {
+      "policy_name": "ucb1",
+      "acceptance_rate": 0.0122,
+      "ips_estimate": 0.0,
+      "snips_estimate": 0.0,
+      "effective_sample_size": 122.0,
+      "dataset": "random_all"
+    },
+    {
+      "policy_name": "epsilon_greedy",
+      "acceptance_rate": 0.01246,
+      "ips_estimate": 0.0,
+      "snips_estimate": 0.0,
+      "effective_sample_size": 76.32496171214751,
+      "dataset": "bts_all"
+    },
+    {
+      "policy_name": "fixed_ab",
+      "acceptance_rate": 0.012280000000000001,
+      "ips_estimate": 0.001016579008896435,
+      "snips_estimate": 0.0023808916981375703,
+      "effective_sample_size": 57.61508569701617,
+      "dataset": "bts_all"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "acceptance_rate": 0.012320000000000001,
+      "ips_estimate": 7.1561616771805e-05,
+      "snips_estimate": 0.000223142908782855,
+      "effective_sample_size": 57.43283371556872,
+      "dataset": "bts_all"
+    },
+    {
+      "policy_name": "ucb1",
+      "acceptance_rate": 0.0125,
+      "ips_estimate": 0.0,
+      "snips_estimate": 0.0,
+      "effective_sample_size": 78.34053391202691,
+      "dataset": "bts_all"
+    },
+    {
+      "policy_name": "epsilon_greedy",
+      "acceptance_rate": 0.027765,
+      "ips_estimate": 0.013430000000000001,
+      "snips_estimate": 0.014205689759704435,
+      "effective_sample_size": 277.6499999999999,
+      "dataset": "random_men"
+    },
+    {
+      "policy_name": "fixed_ab",
+      "acceptance_rate": 0.02898,
+      "ips_estimate": 0.00476,
+      "snips_estimate": 0.004837323864396475,
+      "effective_sample_size": 289.7999999999999,
+      "dataset": "random_men"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "acceptance_rate": 0.029435,
+      "ips_estimate": 0.0045899999999999995,
+      "snips_estimate": 0.00456184141843566,
+      "effective_sample_size": 294.3499999999999,
+      "dataset": "random_men"
+    },
+    {
+      "policy_name": "ucb1",
+      "acceptance_rate": 0.027199999999999995,
+      "ips_estimate": 0.013599999999999998,
+      "snips_estimate": 0.0147058823529411,
+      "effective_sample_size": 271.99999999999994,
+      "dataset": "random_men"
+    },
+    {
+      "policy_name": "epsilon_greedy",
+      "acceptance_rate": 0.022135,
+      "ips_estimate": 0.00023,
+      "snips_estimate": 0.00022222222222222,
+      "effective_sample_size": 221.35000000000005,
+      "dataset": "random_women"
+    },
+    {
+      "policy_name": "fixed_ab",
+      "acceptance_rate": 0.02139,
+      "ips_estimate": 0.003909999999999999,
+      "snips_estimate": 0.004006954597325395,
+      "effective_sample_size": 213.90000000000003,
+      "dataset": "random_women"
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "acceptance_rate": 0.021775,
+      "ips_estimate": 0.00414,
+      "snips_estimate": 0.00408180157636605,
+      "effective_sample_size": 217.75000000000006,
+      "dataset": "random_women"
+    },
+    {
+      "policy_name": "ucb1",
+      "acceptance_rate": 0.0225,
+      "ips_estimate": 0.0,
+      "snips_estimate": 0.0,
+      "effective_sample_size": 225.00000000000009,
+      "dataset": "random_women"
+    }
+  ],
+  "latency": [
+    {
+      "policy_name": "fixed_ab",
+      "n_arms": 5,
+      "context_dim": 1,
+      "n_calls": 20000,
+      "select_arm_us_mean": 74.39673000008042,
+      "update_us_mean": 0.2991199999996752,
+      "total_decision_us_mean": 74.6958500000801
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "n_arms": 5,
+      "context_dim": 1,
+      "n_calls": 20000,
+      "select_arm_us_mean": 61.53075500005799,
+      "update_us_mean": 1.148875000035332,
+      "total_decision_us_mean": 62.67963000009332
+    },
+    {
+      "policy_name": "ucb1",
+      "n_arms": 5,
+      "context_dim": 1,
+      "n_calls": 20000,
+      "select_arm_us_mean": 1.0655400000359805,
+      "update_us_mean": 4.11404999995284,
+      "total_decision_us_mean": 5.179589999988821
+    },
+    {
+      "policy_name": "linucb",
+      "n_arms": 5,
+      "context_dim": 1,
+      "n_calls": 20000,
+      "select_arm_us_mean": 394.6763449999708,
+      "update_us_mean": 44.87692500006233,
+      "total_decision_us_mean": 439.5532700000331
+    },
+    {
+      "policy_name": "fixed_ab",
+      "n_arms": 80,
+      "context_dim": 7,
+      "n_calls": 20000,
+      "select_arm_us_mean": 117.18831999996836,
+      "update_us_mean": 0.3930150000087451,
+      "total_decision_us_mean": 117.58133499997712
+    },
+    {
+      "policy_name": "thompson_sampling",
+      "n_arms": 80,
+      "context_dim": 7,
+      "n_calls": 20000,
+      "select_arm_us_mean": 104.26853000008124,
+      "update_us_mean": 1.4106550000178686,
+      "total_decision_us_mean": 105.6791850000991
+    },
+    {
+      "policy_name": "ucb1",
+      "n_arms": 80,
+      "context_dim": 7,
+      "n_calls": 20000,
+      "select_arm_us_mean": 1.2445250000382655,
+      "update_us_mean": 4.494375000012951,
+      "total_decision_us_mean": 5.738900000051217
+    },
+    {
+      "policy_name": "linucb",
+      "n_arms": 80,
+      "context_dim": 7,
+      "n_calls": 20000,
+      "select_arm_us_mean": 24027.208995,
+      "update_us_mean": 22.588374999941152,
+      "total_decision_us_mean": 24049.797369999946
+    }
+  ]
+}

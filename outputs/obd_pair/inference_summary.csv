@@ -1,0 +1,5 @@
+method,reject_null,p_value,ate,n_control,n_treatment,ess,n_observations,ctr,impressions,item_a,item_b
+naive_ab_pairwise,False,1.0,0.0,136.0,136.0,,,,,41,50
+ips_weighted_pairwise,False,1.0,0.0,,,272.0,272.0,,,41,50
+observed_ctr_arm0,,,,,,,,0.007352941176470588,136.0,41,50
+observed_ctr_arm1,,,,,,,,0.007352941176470588,136.0,41,50

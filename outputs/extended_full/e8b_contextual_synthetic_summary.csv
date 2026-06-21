@@ -1,0 +1,4 @@
+policy_name,final_cumulative_reward,final_cumulative_regret,suboptimal_share,dataset
+fixed_ab,1950.8,49.20000000000961,0.7995099999999999,contextual_synthetic
+linucb,1973.4,26.60000000000465,0.7768200000000001,contextual_synthetic
+thompson_sampling,1971.7,28.300000000006044,0.8589800000000001,contextual_synthetic

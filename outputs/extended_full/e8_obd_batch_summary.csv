@@ -1,0 +1,4 @@
+policy_name,final_cumulative_reward,final_cumulative_regret,suboptimal_share,dataset
+fixed_ab,112.65,232.17758620691615,0.986985,obd_random_all_batch
+linucb,119.25,225.577586206916,0.9800000000000001,obd_random_all_batch
+thompson_sampling,131.3,213.5275862069121,0.97563,obd_random_all_batch
