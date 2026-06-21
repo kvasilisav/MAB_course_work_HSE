@@ -334,10 +334,10 @@ IPS восстанавливает контроль Type I на адаптивн
 
 | policy_name | snips_estimate | ESS | acceptance_rate |
 |---|---:|---:|---:|
-| epsilon_greedy | 0,00427 ± 0,00140 | 5 014 | 5,81% |
-| fixed_ab | 0,00281 ± 0,00113 | 659 | 1,25% |
-| thompson_sampling | 0,00121 ± 0,00068 | 189 | 0,16% |
-| ucb1 | 0,00000 | 21 | 0,007% |
+| thompson_sampling | 0,0040 ± 0,0008 | 6 006 | 1,25% |
+| fixed_ab | 0,0039 ± 0,0007 | 6 023 | 1,25% |
+| epsilon_greedy | 0,0023 ± 0,0003 | 2 888 | 0,36% |
+| ucb1 | 0,0016 ± 0,0000 | 2 596 | 0,26% |
 
 **Таблица 3.16 — сравнение масштаба OPE (`fixed_ab`)**
 
@@ -346,7 +346,7 @@ IPS восстанавливает контроль Type I на адаптивн
 | E2, random/all | 10k | 38 | 123 | acceptance ≈ 1,2% |
 | E9a, random/all | 1,37M | 4 768 | 17 152 | SNIPS ~0,0036, высокая дисперсия |
 | E2b/c, bts/all | 10k | 42 | 58 | adaptive logging |
-| E9b, bts/all | 1M | 3 500 | 659 | adaptive logging, низкий acceptance у TS |
+| E9b, bts/all | 1M | 3 500 | 6 023 | SNIPS ~0,004, acceptance ≈ 1,25% у fixed_ab |
 
 Цепочка E2 → E2b/c → E9 показывает: replay-OPE-пайплайн работает; ranking на малых выборках хрупок; масштаб улучшает ESS, но не даёт уверенного ранжирования на low-CTR логах с 80 руками; logging policy критична.
 
