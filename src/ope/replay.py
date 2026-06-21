@@ -23,12 +23,23 @@ class ReplayEvaluationResult:
     effective_sample_size: float
 
 
-def _safe_propensity(event: EventRecord) -> float | None:
+def _safe_propensity(event: EventRecord, *, propensity_floor: float) -> float | None:
     if event.propensity is None:
         return None
     if event.propensity <= 0.0:
         return None
-    return float(event.propensity)
+    return max(float(event.propensity), propensity_floor)
+
+
+def _valid_events(events: list[EventRecord]) -> list[EventRecord]:
+    rows: list[EventRecord] = []
+    for event in events:
+        if event.chosen_arm is None or event.observed_reward is None:
+            continue
+        if event.propensity is None or event.propensity <= 0.0:
+            continue
+        rows.append(event)
+    return rows
 
 
 def run_replay_evaluation(
@@ -36,6 +47,9 @@ def run_replay_evaluation(
     events: list[EventRecord],
     policy_factory: Callable[[int, int], BanditPolicy],
     seed: int,
+    freeze_policy: bool = True,
+    propensity_floor: float = 0.01,
+    shuffle_events: bool = True,
 ) -> ReplayEvaluationResult:
     if not events:
         raise ValueError("events must not be empty.")
@@ -43,16 +57,23 @@ def run_replay_evaluation(
     policy = policy_factory(n_arms, seed)
     policy.reset(seed=seed)
 
+    stream = _valid_events(events)
+    if not stream:
+        raise ValueError("No valid logged rows with chosen_arm, reward, and positive propensity were found.")
+
+    if shuffle_events:
+        rng = np.random.default_rng(seed)
+        stream = list(stream)
+        rng.shuffle(stream)
+
     accepted_rewards: list[float] = []
     weights: list[float] = []
     weighted_rewards: list[float] = []
     accepted = 0
     valid_logged_rows = 0
 
-    for event in events:
-        if event.chosen_arm is None or event.observed_reward is None:
-            continue
-        propensity = _safe_propensity(event)
+    for event in stream:
+        propensity = _safe_propensity(event, propensity_floor=propensity_floor)
         if propensity is None:
             continue
         valid_logged_rows += 1
@@ -68,14 +89,15 @@ def run_replay_evaluation(
             accepted += 1
             reward = float(event.observed_reward)
             accepted_rewards.append(reward)
-            policy.update(chosen_by_target, reward, context)
+            if not freeze_policy:
+                policy.update(chosen_by_target, reward, context)
 
     if valid_logged_rows == 0:
         raise ValueError("No valid logged rows with chosen_arm, reward, and positive propensity were found.")
 
     total_events = len(events)
     accepted_mean_reward = float(np.mean(accepted_rewards)) if accepted_rewards else 0.0
-    ips_estimate = float(np.sum(weighted_rewards) / total_events) if total_events > 0 else 0.0
+    ips_estimate = float(np.sum(weighted_rewards) / valid_logged_rows)
     weight_sum = float(np.sum(weights))
     snips_estimate = float(np.sum(weighted_rewards) / weight_sum) if weight_sum > 0 else 0.0
     weight_sq_sum = float(np.sum(np.square(weights)))
@@ -99,11 +121,21 @@ def compare_policies_replay(
     events: list[EventRecord],
     policy_factories: dict[str, Callable[[int, int], BanditPolicy]],
     seeds: int,
+    freeze_policy: bool = True,
+    propensity_floor: float = 0.01,
+    shuffle_events: bool = True,
 ) -> pd.DataFrame:
     rows: list[dict[str, float | int | str]] = []
     for seed in range(seeds):
         for _, policy_factory in policy_factories.items():
-            result = run_replay_evaluation(events=events, policy_factory=policy_factory, seed=seed)
+            result = run_replay_evaluation(
+                events=events,
+                policy_factory=policy_factory,
+                seed=seed,
+                freeze_policy=freeze_policy,
+                propensity_floor=propensity_floor,
+                shuffle_events=shuffle_events,
+            )
             rows.append(
                 {
                     "policy_name": result.policy_name,

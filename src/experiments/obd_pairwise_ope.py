@@ -106,6 +106,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--seeds", type=int, default=10)
     parser.add_argument("--alpha", type=float, default=0.05)
     parser.add_argument("--output-dir", default="outputs/obd_pair")
+    parser.add_argument("--propensity-floor", type=float, default=0.01)
+    parser.add_argument("--no-freeze-policy", action="store_true")
+    parser.add_argument("--no-shuffle", action="store_true")
     return parser.parse_args()
 
 
@@ -126,7 +129,14 @@ def main() -> None:
     events = load_events(events_path)
     policy_names = [p.strip() for p in args.policies.split(",") if p.strip()]
     factories = {name: _build_policy_factory(name) for name in policy_names}
-    ope_summary = compare_policies_replay(events=events, policy_factories=factories, seeds=args.seeds)
+    ope_summary = compare_policies_replay(
+        events=events,
+        policy_factories=factories,
+        seeds=args.seeds,
+        freeze_policy=not args.no_freeze_policy,
+        propensity_floor=args.propensity_floor,
+        shuffle_events=not args.no_shuffle,
+    )
     ope_summary["item_a"] = item_a
     ope_summary["item_b"] = item_b
     ope_summary["n_pair_events"] = len(events_df)

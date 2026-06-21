@@ -71,6 +71,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--events-path", default="data/processed/obd_events.csv")
     parser.add_argument("--assignments-path", default=None)
     parser.add_argument("--reward-probs", default="[0.03, 0.035, 0.04, 0.05, 0.045]")
+    parser.add_argument("--propensity-floor", type=float, default=0.01)
+    parser.add_argument("--no-freeze-policy", action="store_true")
+    parser.add_argument("--no-shuffle", action="store_true")
     return parser.parse_args()
 
 
@@ -97,7 +100,14 @@ def main() -> None:
         for name in policies
     }
     if args.mode == "ope":
-        replay_summary = compare_policies_replay(events=events, policy_factories=policy_factories, seeds=args.seeds)
+        replay_summary = compare_policies_replay(
+            events=events,
+            policy_factories=policy_factories,
+            seeds=args.seeds,
+            freeze_policy=not args.no_freeze_policy,
+            propensity_floor=args.propensity_floor,
+            shuffle_events=not args.no_shuffle,
+        )
         output_dir = Path(args.output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
         replay_summary.to_csv(output_dir / "ope_summary.csv", index=False)

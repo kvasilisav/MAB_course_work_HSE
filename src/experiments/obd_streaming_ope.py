@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 from urllib.request import urlretrieve
@@ -25,11 +26,29 @@ CAMPAIGN_N_ARMS = {
 }
 
 
+@dataclass(slots=True)
+class _LoggedEvent:
+    logged_arm: int
+    reward: float
+    propensity: float
+    context: np.ndarray | None
+
+
 class StreamingReplayState:
-    def __init__(self, policy_name: str, seed: int, policy: BanditPolicy) -> None:
+    def __init__(
+        self,
+        policy_name: str,
+        seed: int,
+        policy: BanditPolicy,
+        *,
+        freeze_policy: bool = True,
+        propensity_floor: float = 0.01,
+    ) -> None:
         self.policy_name = policy_name
         self.seed = seed
         self.policy = policy
+        self.freeze_policy = freeze_policy
+        self.propensity_floor = propensity_floor
         self.total_events = 0
         self.valid_logged_rows = 0
         self.accepted_events = 0
@@ -49,28 +68,33 @@ class StreamingReplayState:
         self.total_events += 1
         if propensity <= 0.0:
             return
+        clipped_propensity = max(float(propensity), self.propensity_floor)
         self.valid_logged_rows += 1
-        chosen_arm = int(self.policy.select_arm(context))
-        if chosen_arm != logged_arm:
-            self.weight_sq_sum += 0.0
-            return
 
-        weight = 1.0 / propensity
-        self.accepted_events += 1
-        self.accepted_reward_sum += reward
+        chosen_arm = int(self.policy.select_arm(context))
+        indicator = 1.0 if chosen_arm == logged_arm else 0.0
+        weight = indicator / clipped_propensity
         self.weight_sum += weight
         self.weighted_reward_sum += weight * reward
         self.weight_sq_sum += weight * weight
-        self.policy.update(chosen_arm, reward, context)
+
+        if indicator <= 0.0:
+            return
+
+        self.accepted_events += 1
+        self.accepted_reward_sum += reward
+        if not self.freeze_policy:
+            self.policy.update(chosen_arm, reward, context)
 
     def to_row(self) -> dict[str, float | int | str]:
         denominator = self.total_events if self.total_events > 0 else 1
+        valid_rows = self.valid_logged_rows if self.valid_logged_rows > 0 else 1
         accepted_mean_reward = (
             self.accepted_reward_sum / self.accepted_events
             if self.accepted_events > 0
             else 0.0
         )
-        ips_estimate = self.weighted_reward_sum / denominator
+        ips_estimate = self.weighted_reward_sum / valid_rows
         snips_estimate = (
             self.weighted_reward_sum / self.weight_sum
             if self.weight_sum > 0.0
@@ -123,6 +147,22 @@ def parse_args() -> argparse.Namespace:
         "--include-context",
         action="store_true",
         help="Build context vectors for LinUCB. Non-contextual policies ignore this.",
+    )
+    parser.add_argument(
+        "--propensity-floor",
+        type=float,
+        default=0.01,
+        help="Minimum propensity used in IPS/SNIPS weights.",
+    )
+    parser.add_argument(
+        "--no-freeze-policy",
+        action="store_true",
+        help="Allow policy.update() during replay (legacy/debug behavior).",
+    )
+    parser.add_argument(
+        "--no-shuffle",
+        action="store_true",
+        help="Process logged events in file order instead of shuffling per seed.",
     )
     return parser.parse_args()
 
@@ -208,31 +248,14 @@ def _policy_factories(context_dim: int, include_linucb: bool) -> dict[str, Calla
     return factories
 
 
-def run_streaming_obd_ope(
+def _load_logged_events(
     *,
     input_path: Path,
-    behavior_policy: str,
-    campaign: str,
-    n_arms: int | None,
-    seeds: int,
     chunksize: int,
     max_events: int | None,
     include_context: bool,
-    include_linucb: bool,
-) -> pd.DataFrame:
-    resolved_n_arms = n_arms if n_arms is not None else CAMPAIGN_N_ARMS[campaign]
-    context_dim = 7 if include_context else 1
-    factories = _policy_factories(context_dim=context_dim, include_linucb=include_linucb)
-    states = [
-        StreamingReplayState(
-            policy_name=policy_name,
-            seed=seed,
-            policy=factory(resolved_n_arms, seed),
-        )
-        for seed in range(seeds)
-        for policy_name, factory in factories.items()
-    ]
-
+) -> list[_LoggedEvent]:
+    events: list[_LoggedEvent] = []
     processed = 0
     reader = pd.read_csv(input_path, chunksize=chunksize, compression="infer")
     for chunk in reader:
@@ -253,36 +276,91 @@ def run_streaming_obd_ope(
 
         affinity_columns = [column for column in chunk.columns if column.startswith("user-item_affinity_")]
         if include_context:
-            iterator = (
-                (
-                    int(row["item_id"]),
-                    float(row["click"]),
-                    float(row[propensity_col]),
-                    _build_context(row, affinity_columns, int(row["item_id"])),
+            for _, row in chunk.iterrows():
+                events.append(
+                    _LoggedEvent(
+                        logged_arm=int(row["item_id"]),
+                        reward=float(row["click"]),
+                        propensity=float(row[propensity_col]),
+                        context=_build_context(row, affinity_columns, int(row["item_id"])),
+                    )
                 )
-                for _, row in chunk.iterrows()
-            )
         else:
-            iterator = zip(
+            for logged_arm, reward, propensity in zip(
                 chunk["item_id"].astype(int).to_numpy(),
                 chunk["click"].astype(float).to_numpy(),
                 chunk[propensity_col].astype(float).to_numpy(),
-                [None] * len(chunk),
-            )
-
-        for logged_arm, reward, propensity, context in iterator:
-            for state in states:
-                state.observe(
-                    logged_arm=int(logged_arm),
-                    reward=float(reward),
-                    propensity=float(propensity),
-                    context=context,
+            ):
+                events.append(
+                    _LoggedEvent(
+                        logged_arm=int(logged_arm),
+                        reward=float(reward),
+                        propensity=float(propensity),
+                        context=None,
+                    )
                 )
+
         processed += len(chunk)
         if max_events is not None and processed >= max_events:
             break
 
-    frame = pd.DataFrame([state.to_row() for state in states])
+    if not events:
+        raise ValueError("No logged events were loaded from the OBD input.")
+    return events
+
+
+def run_streaming_obd_ope(
+    *,
+    input_path: Path,
+    behavior_policy: str,
+    campaign: str,
+    n_arms: int | None,
+    seeds: int,
+    chunksize: int,
+    max_events: int | None,
+    include_context: bool,
+    include_linucb: bool,
+    freeze_policy: bool = True,
+    propensity_floor: float = 0.01,
+    shuffle_events: bool = True,
+) -> pd.DataFrame:
+    resolved_n_arms = n_arms if n_arms is not None else CAMPAIGN_N_ARMS[campaign]
+    context_dim = 7 if include_context else 1
+    factories = _policy_factories(context_dim=context_dim, include_linucb=include_linucb)
+    logged_events = _load_logged_events(
+        input_path=input_path,
+        chunksize=chunksize,
+        max_events=max_events,
+        include_context=include_context,
+    )
+
+    rows: list[dict[str, float | int | str]] = []
+    for seed in range(seeds):
+        stream = list(logged_events)
+        if shuffle_events:
+            rng = np.random.default_rng(seed)
+            rng.shuffle(stream)
+
+        for policy_name, factory in factories.items():
+            policy = factory(resolved_n_arms, seed)
+            policy.reset(seed=seed)
+            state = StreamingReplayState(
+                policy_name=policy_name,
+                seed=seed,
+                policy=policy,
+                freeze_policy=freeze_policy,
+                propensity_floor=propensity_floor,
+            )
+            for event in stream:
+                state.observe(
+                    logged_arm=event.logged_arm,
+                    reward=event.reward,
+                    propensity=event.propensity,
+                    context=event.context,
+                )
+            rows.append(state.to_row())
+
+    frame = pd.DataFrame(rows)
     frame.insert(0, "behavior_policy", behavior_policy)
     frame.insert(1, "campaign", campaign)
     frame.insert(2, "source_path", str(input_path))
@@ -305,6 +383,9 @@ def main() -> None:
         max_events=args.max_events,
         include_context=args.include_context,
         include_linucb=args.include_linucb,
+        freeze_policy=not args.no_freeze_policy,
+        propensity_floor=args.propensity_floor,
+        shuffle_events=not args.no_shuffle,
     )
     summary.to_csv(output_dir / "ope_summary.csv", index=False)
     print(

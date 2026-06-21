@@ -7,7 +7,7 @@
 1. **Блок I** — польза адаптивного назначения (regret, клики): E1, E6, E8b, E12.
 2. **Блок II** — корректный статистический вывод (Type I, IPS, sequential): E4, E5, E11, E14.
 
-Дополнительно: strict OPE на Open Bandit Dataset (E2, E9), latency (P1). E3/E8 — приложение А.
+Дополнительно: IPS/SNIPS replay-OPE на Open Bandit Dataset (E2, E9), latency (P1). E3/E8 — приложение А.
 
 ## Текст работы (исходники для LaTeX)
 
@@ -60,7 +60,7 @@ python -m scripts.prepare_open_bandit --download --behavior-policy random --camp
 | -------------------------------------------- | ------------------------------------------------ |
 | `src/bandits/`                               | Политики: `fixed_ab`, ε-greedy, UCB1, TS, LinUCB |
 | `src/environments/`                          | Синтетика, contextual, logged clicks             |
-| `src/ope/`                                   | Strict OPE (SNIPS)                               |
+| `src/ope/`                                   | IPS/SNIPS replay-OPE                             |
 | `src/ab_testing/`                            | Inference, IPS, sequential (E11, E14)            |
 | `src/experiments/`                           | Прогоны E1–E14, P1, сборка `full_report.json`    |
 | `tests/`                                     | pytest                                           |
@@ -70,8 +70,8 @@ python -m scripts.prepare_open_bandit --download --behavior-policy random --camp
 ### Режимы `compare_ab_vs_bandits`
 
 - `synthetic` — Bernoulli / contextual synthetic (E1, E8b).
-- `ope` — strict replay с propensity (E2).
-- `batch` — разведочный batch на OBD (**не** strict OPE; E3/E8 — приложение).
+- `ope` — IPS/SNIPS replay с propensity; candidate заморожена при оценке (`freeze_policy`, см. `src/ope/replay.py`).
+- `batch` — разведочный batch на OBD (**не** replay-OPE; E3/E8 — приложение).
 
 ### Ключевые команды (по отдельности)
 
@@ -86,7 +86,9 @@ python -m src.experiments.product_ab_e12 --output-dir outputs/product_ab
 python -m src.experiments.obd_pair_selection --output-dir outputs/obd_pair
 ```
 
-Сводный отчёт после полного прогона: `outputs/extended_full/full_report.json`.
+Сводный отчёт после полного прогона: `outputs/extended_full/full_report.json`. Сводные CSV (`ope_matrix_summary.csv`, `e11_summary.csv` и др.) — в git для сверки с текстом (см. `.gitignore`).
+
+Linux/macOS: `bash run_all.sh` (аналог `run_all.ps1`).
 
 ## Ограничения
 
