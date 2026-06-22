@@ -55,9 +55,6 @@ def test_replay_outputs_core_metrics(tmp_path) -> None:
     assert {"ips_estimate", "snips_estimate", "acceptance_rate", "effective_sample_size"}.issubset(frame.columns)
 
 
-    assert {"ips_estimate", "snips_estimate", "acceptance_rate", "effective_sample_size"}.issubset(frame.columns)
-
-
 def test_replay_bootstrap_snips_ci() -> None:
     events = _load_events_from_frame(
         pd.DataFrame(

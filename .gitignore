@@ -29,6 +29,12 @@ outputs/**
 !outputs/sequential_valid/
 !outputs/sequential_valid/e14_summary.csv
 
+!outputs/cuped_power/
+!outputs/cuped_power/e15_summary.csv
+
+!outputs/synthetic_scenarios/
+!outputs/synthetic_scenarios/bootstrap_regret_vs_fixed.csv
+
 # OBD: скачивать через scripts/prepare_open_bandit.py
 data/raw/obd_*.csv
 data/raw/full_obd/
