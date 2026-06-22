@@ -26,6 +26,7 @@ def _run_streaming_ope_matrix(
     seeds: int,
     include_linucb: bool,
     max_events: int | None,
+    n_bootstrap: int = 0,
 ) -> pd.DataFrame:
     frames: list[pd.DataFrame] = []
     for behavior, campaign, label in specs:
@@ -44,6 +45,7 @@ def _run_streaming_ope_matrix(
             max_events=max_events,
             include_context=include_linucb,
             include_linucb=include_linucb,
+            n_bootstrap=n_bootstrap,
         )
         out_dir = root / "outputs/extended_full" / f"streaming_ope_{label}"
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -67,6 +69,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--latency-calls", type=int, default=20_000)
     parser.add_argument("--skip-download", action="store_true")
     parser.add_argument("--skip-linucb-ope", action="store_true", help="Skip LinUCB in streaming OPE (much faster).")
+    parser.add_argument("--bootstrap-ope", type=int, default=500, help="Bootstrap draws for SNIPS CI in OPE paths.")
     parser.add_argument("--output-dir", default="outputs/extended_full")
     return parser.parse_args()
 
@@ -184,6 +187,7 @@ def main() -> None:
             events_path=events_path,
             output_dir=out / folder,
             seeds=args.seeds_ope,
+            n_bootstrap=args.bootstrap_ope,
         )
         ope_frames.append(_summarize_ope(ope_summary, f"{behavior}_{campaign}"))
 
@@ -201,6 +205,7 @@ def main() -> None:
         seeds=args.seeds_ope,
         include_linucb=not args.skip_linucb_ope,
         max_events=None,
+        n_bootstrap=args.bootstrap_ope,
     )
 
     # E1-scale synthetic baseline (non-contextual) for comparison
@@ -232,6 +237,7 @@ def main() -> None:
             "seeds_synthetic": args.seeds_synthetic,
             "seeds_obd_batch": args.seeds_obd_batch,
             "seeds_ope": args.seeds_ope,
+            "bootstrap_ope": args.bootstrap_ope,
             "horizon_contextual": args.horizon_contextual,
             "obd_rows_per_dataset": 10_000,
             "note": "Full small-OBD release (10k rows). For millions of rows, place full CSV under data/raw/full_obd/ and use obd_streaming_ope --max-events.",

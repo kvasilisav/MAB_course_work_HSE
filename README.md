@@ -92,7 +92,7 @@ Linux/macOS: `bash run_all.sh` (аналог `run_all.ps1`).
 
 ## Ограничения
 
-- `batch`-режим — приближение, не counterfactual OPE; для честной офлайн-оценки — `ope` + propensity.
-- DR/CUPED описаны в тексте (§4.3), в коде не реализованы.
+- `batch`-режим — приближение, не counterfactual OPE; для честной офлайн-оценки — `ope` + propensity + опциональный bootstrap SNIPS (`--bootstrap`).
+- DR описан в §4.3, в коде не реализован. CUPED — E15 на синтетике (`cuped_power_study.py`).
 - `FixedABPolicy` — только allocation; вывод — `src/ab_testing/`.
 

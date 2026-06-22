@@ -57,6 +57,7 @@ def _run_compare(
     env: str = "bernoulli",
     context_dim: int = 4,
     batch_size: int = 200,
+    n_bootstrap: int = 0,
 ) -> pd.DataFrame:
     output_dir.mkdir(parents=True, exist_ok=True)
     command = [
@@ -82,6 +83,8 @@ def _run_compare(
     ]
     if horizon is not None:
         command.extend(["--horizon", str(horizon)])
+    if n_bootstrap > 0:
+        command.extend(["--bootstrap", str(n_bootstrap)])
     _run_command(command, cwd=root)
 
     if mode == "ope":

@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 
 from src.bandits.base import BanditPolicy
+from src.evaluation.bootstrap import bootstrap_snips_ci
 from src.pipeline.schemas import EventRecord
 
 
@@ -21,6 +22,8 @@ class ReplayEvaluationResult:
     ips_estimate: float
     snips_estimate: float
     effective_sample_size: float
+    snips_ci_low: float | None = None
+    snips_ci_high: float | None = None
 
 
 def _safe_propensity(event: EventRecord, *, propensity_floor: float) -> float | None:
@@ -50,6 +53,7 @@ def run_replay_evaluation(
     freeze_policy: bool = True,
     propensity_floor: float = 0.01,
     shuffle_events: bool = True,
+    n_bootstrap: int = 0,
 ) -> ReplayEvaluationResult:
     if not events:
         raise ValueError("events must not be empty.")
@@ -69,6 +73,8 @@ def run_replay_evaluation(
     accepted_rewards: list[float] = []
     weights: list[float] = []
     weighted_rewards: list[float] = []
+    row_weights: list[float] = []
+    row_rewards: list[float] = []
     accepted = 0
     valid_logged_rows = 0
 
@@ -82,12 +88,15 @@ def run_replay_evaluation(
         chosen_by_target = policy.select_arm(context)
         indicator = 1.0 if chosen_by_target == event.chosen_arm else 0.0
         weight = indicator / propensity
+        reward = float(event.observed_reward)
         weights.append(weight)
-        weighted_rewards.append(weight * float(event.observed_reward))
+        weighted_rewards.append(weight * reward)
+        if n_bootstrap > 0:
+            row_weights.append(weight)
+            row_rewards.append(reward)
 
         if indicator > 0.0:
             accepted += 1
-            reward = float(event.observed_reward)
             accepted_rewards.append(reward)
             if not freeze_policy:
                 policy.update(chosen_by_target, reward, context)
@@ -103,6 +112,16 @@ def run_replay_evaluation(
     weight_sq_sum = float(np.sum(np.square(weights)))
     ess = float((weight_sum * weight_sum) / weight_sq_sum) if weight_sq_sum > 0 else 0.0
 
+    snips_ci_low: float | None = None
+    snips_ci_high: float | None = None
+    if n_bootstrap > 0 and row_weights:
+        snips_ci_low, snips_ci_high = bootstrap_snips_ci(
+            np.asarray(row_weights, dtype=float),
+            np.asarray(row_rewards, dtype=float),
+            n_bootstrap=n_bootstrap,
+            seed=seed + 91_337,
+        )
+
     return ReplayEvaluationResult(
         policy_name=getattr(policy, "name", "unknown_policy"),
         seed=seed,
@@ -113,6 +132,8 @@ def run_replay_evaluation(
         ips_estimate=ips_estimate,
         snips_estimate=snips_estimate,
         effective_sample_size=ess,
+        snips_ci_low=snips_ci_low,
+        snips_ci_high=snips_ci_high,
     )
 
 
@@ -124,6 +145,7 @@ def compare_policies_replay(
     freeze_policy: bool = True,
     propensity_floor: float = 0.01,
     shuffle_events: bool = True,
+    n_bootstrap: int = 0,
 ) -> pd.DataFrame:
     rows: list[dict[str, float | int | str]] = []
     for seed in range(seeds):
@@ -135,6 +157,7 @@ def compare_policies_replay(
                 freeze_policy=freeze_policy,
                 propensity_floor=propensity_floor,
                 shuffle_events=shuffle_events,
+                n_bootstrap=n_bootstrap,
             )
             rows.append(
                 {
@@ -147,6 +170,8 @@ def compare_policies_replay(
                     "ips_estimate": result.ips_estimate,
                     "snips_estimate": result.snips_estimate,
                     "effective_sample_size": result.effective_sample_size,
+                    "snips_ci_low": result.snips_ci_low,
+                    "snips_ci_high": result.snips_ci_high,
                 }
             )
     return pd.DataFrame(rows).sort_values(["policy_name", "seed"]).reset_index(drop=True)

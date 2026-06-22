@@ -109,6 +109,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--propensity-floor", type=float, default=0.01)
     parser.add_argument("--no-freeze-policy", action="store_true")
     parser.add_argument("--no-shuffle", action="store_true")
+    parser.add_argument("--bootstrap", type=int, default=0)
     return parser.parse_args()
 
 
@@ -136,6 +137,7 @@ def main() -> None:
         freeze_policy=not args.no_freeze_policy,
         propensity_floor=args.propensity_floor,
         shuffle_events=not args.no_shuffle,
+        n_bootstrap=args.bootstrap,
     )
     ope_summary["item_a"] = item_a
     ope_summary["item_b"] = item_b

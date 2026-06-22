@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 
 from src.bandits.base import BanditPolicy
+from src.evaluation.bootstrap import bootstrap_snips_ci
 from src.bandits.epsilon_greedy import EpsilonGreedyPolicy
 from src.bandits.fixed_ab import FixedABPolicy
 from src.bandits.linucb import LinUCBPolicy
@@ -43,12 +44,14 @@ class StreamingReplayState:
         *,
         freeze_policy: bool = True,
         propensity_floor: float = 0.01,
+        n_bootstrap: int = 0,
     ) -> None:
         self.policy_name = policy_name
         self.seed = seed
         self.policy = policy
         self.freeze_policy = freeze_policy
         self.propensity_floor = propensity_floor
+        self.n_bootstrap = n_bootstrap
         self.total_events = 0
         self.valid_logged_rows = 0
         self.accepted_events = 0
@@ -56,6 +59,8 @@ class StreamingReplayState:
         self.weight_sum = 0.0
         self.weighted_reward_sum = 0.0
         self.weight_sq_sum = 0.0
+        self.row_weights: list[float] = []
+        self.row_rewards: list[float] = []
 
     def observe(
         self,
@@ -77,6 +82,9 @@ class StreamingReplayState:
         self.weight_sum += weight
         self.weighted_reward_sum += weight * reward
         self.weight_sq_sum += weight * weight
+        if self.n_bootstrap > 0:
+            self.row_weights.append(weight)
+            self.row_rewards.append(reward)
 
         if indicator <= 0.0:
             return
@@ -105,6 +113,15 @@ class StreamingReplayState:
             if self.weight_sq_sum > 0.0
             else 0.0
         )
+        snips_ci_low: float | None = None
+        snips_ci_high: float | None = None
+        if self.n_bootstrap > 0 and self.row_weights:
+            snips_ci_low, snips_ci_high = bootstrap_snips_ci(
+                np.asarray(self.row_weights, dtype=float),
+                np.asarray(self.row_rewards, dtype=float),
+                n_bootstrap=self.n_bootstrap,
+                seed=self.seed + 91_337,
+            )
         return {
             "policy_name": self.policy_name,
             "seed": self.seed,
@@ -116,6 +133,8 @@ class StreamingReplayState:
             "ips_estimate": ips_estimate,
             "snips_estimate": snips_estimate,
             "effective_sample_size": ess,
+            "snips_ci_low": snips_ci_low,
+            "snips_ci_high": snips_ci_high,
         }
 
 
@@ -163,6 +182,12 @@ def parse_args() -> argparse.Namespace:
         "--no-shuffle",
         action="store_true",
         help="Process logged events in file order instead of shuffling per seed.",
+    )
+    parser.add_argument(
+        "--bootstrap",
+        type=int,
+        default=0,
+        help="Bootstrap draws for SNIPS CI by resampling logged rows; 0 = disabled.",
     )
     return parser.parse_args()
 
@@ -323,6 +348,7 @@ def run_streaming_obd_ope(
     freeze_policy: bool = True,
     propensity_floor: float = 0.01,
     shuffle_events: bool = True,
+    n_bootstrap: int = 0,
 ) -> pd.DataFrame:
     resolved_n_arms = n_arms if n_arms is not None else CAMPAIGN_N_ARMS[campaign]
     context_dim = 7 if include_context else 1
@@ -350,6 +376,7 @@ def run_streaming_obd_ope(
                 policy=policy,
                 freeze_policy=freeze_policy,
                 propensity_floor=propensity_floor,
+                n_bootstrap=n_bootstrap,
             )
             for event in stream:
                 state.observe(
@@ -386,6 +413,7 @@ def main() -> None:
         freeze_policy=not args.no_freeze_policy,
         propensity_floor=args.propensity_floor,
         shuffle_events=not args.no_shuffle,
+        n_bootstrap=args.bootstrap,
     )
     summary.to_csv(output_dir / "ope_summary.csv", index=False)
     print(

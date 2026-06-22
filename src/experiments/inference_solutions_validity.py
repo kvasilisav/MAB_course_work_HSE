@@ -114,6 +114,7 @@ def _evaluate_trial(
             row["ate"] = float(result.ate_ips)
             row["ess"] = float(result.effective_sample_size)
             row["n_observations"] = int(result.n_observations)
+            row["ips_se_method"] = "bootstrap" if n_bootstrap > 0 else "analytical"
         else:
             row["ate"] = float(result.ate)
             row["n_control"] = int(result.n_control)
@@ -205,7 +206,8 @@ def main() -> None:
     args = parse_args()
     print(
         f"E11 inference solutions: horizon={args.horizon}, "
-        f"trials={args.trials}, alpha={args.alpha}, propensity_mc={args.propensity_mc}"
+        f"trials={args.trials}, alpha={args.alpha}, propensity_mc={args.propensity_mc}, "
+        f"bootstrap={args.bootstrap}"
     )
     effect_ctrs = [float(x.strip()) for x in args.effect_ctrs.split(",") if x.strip()]
     summary, detail = run_inference_solutions_study(

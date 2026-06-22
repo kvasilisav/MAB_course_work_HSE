@@ -55,6 +55,63 @@ def test_replay_outputs_core_metrics(tmp_path) -> None:
     assert {"ips_estimate", "snips_estimate", "acceptance_rate", "effective_sample_size"}.issubset(frame.columns)
 
 
+    assert {"ips_estimate", "snips_estimate", "acceptance_rate", "effective_sample_size"}.issubset(frame.columns)
+
+
+def test_replay_bootstrap_snips_ci() -> None:
+    events = _load_events_from_frame(
+        pd.DataFrame(
+            [
+                {
+                    "event_id": 1,
+                    "timestamp": 1,
+                    "user_id": "u1",
+                    "context_json": json.dumps([1.0]),
+                    "candidate_arms_json": json.dumps([0, 1]),
+                    "chosen_arm": 0,
+                    "reward": 1.0,
+                    "propensity": 0.5,
+                },
+                {
+                    "event_id": 2,
+                    "timestamp": 2,
+                    "user_id": "u2",
+                    "context_json": json.dumps([1.0]),
+                    "candidate_arms_json": json.dumps([0, 1]),
+                    "chosen_arm": 0,
+                    "reward": 0.0,
+                    "propensity": 0.5,
+                },
+                {
+                    "event_id": 3,
+                    "timestamp": 3,
+                    "user_id": "u3",
+                    "context_json": json.dumps([1.0]),
+                    "candidate_arms_json": json.dumps([0, 1]),
+                    "chosen_arm": 1,
+                    "reward": 1.0,
+                    "propensity": 0.5,
+                },
+            ]
+        )
+    )
+    result = run_replay_evaluation(
+        events=events,
+        policy_factory=lambda n_arms, seed: FixedABPolicy(
+            n_arms=n_arms,
+            probabilities=[1.0, 0.0],
+            seed=seed,
+        ),
+        seed=0,
+        freeze_policy=True,
+        shuffle_events=False,
+        n_bootstrap=200,
+    )
+    assert result.snips_ci_low is not None
+    assert result.snips_ci_high is not None
+    assert result.snips_ci_low <= result.snips_estimate <= result.snips_ci_high
+
+
 def test_freeze_policy_skips_updates() -> None:
     events = _load_events_from_frame(
         pd.DataFrame(
