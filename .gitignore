@@ -43,7 +43,8 @@ data/processed/obd_events.csv
 data/processed/obd_*.csv
 data/processed/events.csv
 
-# Локальные черновики, журнал, сборка MD/DOCX (не в git)
+# Черновики текста в Markdown (канон — chapters/*.tex); docs/internal/ — локальный журнал
+docs/*.md
 docs/internal/
 
 # OS / IDE

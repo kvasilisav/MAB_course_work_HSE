@@ -1,25 +1,28 @@
-# Курсовая работа на тему "Алгоритм Многорукого Бандита (MAB) как альтернатива A/B тестированию"
+# Курсовая работа на тему «Алгоритм многорукого бандита (MAB) как альтернатива A/B-тестированию»
 
 Воспроизводимый Python-проект: сравнение **фиксированного A/B-разбиения** и **адаптивных политик многорукого бандита** (ε-greedy, UCB1, Thompson Sampling, LinUCB) в постановке онлайн-эксперимента по CTR.
 
 Два блока оценки (см. гл. 3):
 
 1. **Блок I** — польза адаптивного назначения (regret, клики): E1, E6, E8b, E12.
-2. **Блок II** — корректный статистический вывод (Type I, IPS, sequential): E4, E5, E11, E14.
+2. **Блок II** — корректный статистический вывод (ошибка I рода, IPS, последовательные процедуры): E4, E5, E11, E14.
 
-Дополнительно: IPS/SNIPS replay-OPE на Open Bandit Dataset (E2, E9), latency (P1). E3/E8 — приложение А.
+Дополнительно: IPS/SNIPS replay-OPE на Open Bandit Dataset (E2, E9), время задержки (P1). E3/E8 — приложение А.
 
-## Текст работы (исходники для LaTeX)
+## Текст работы
 
+**Канонический источник текста — LaTeX в `chapters/`** (то, что идёт в PDF/DOCX). Файлы в `docs/*.md` — устаревшие черновики для удобства правки в редакторе; в git не отслеживаются (см. `.gitignore`). При расхождении ориентируйтесь на `.tex`.
 
-| Файл                                                                       | Раздел                                |
-| -------------------------------------------------------------------------- | ------------------------------------- |
-| `[docs/front_matter.md](docs/front_matter.md)`                             | Титул, аннотация, сокращения          |
-| `[docs/literature_review_academic.md](docs/literature_review_academic.md)` | Главы 1–2, список литературы [1]–[40] |
-| `[docs/experiments_chapter.md](docs/experiments_chapter.md)`               | Глава 3                               |
-| `[docs/conclusion_chapter.md](docs/conclusion_chapter.md)`                 | Глава 4                               |
-| `[docs/appendix.md](docs/appendix.md)`                                     | Приложение А (E3, E8, E13)            |
+| Файл | Раздел |
+|------|--------|
+| [`chapters/meta.txt`](chapters/meta.txt) | Аннотация, метаданные |
+| [`chapters/abbreviations.tex`](chapters/abbreviations.tex) | Сокращения |
+| [`chapters/literature.tex`](chapters/literature.tex) | Главы 1–2, список литературы |
+| [`chapters/experiments.tex`](chapters/experiments.tex) | Глава 3 |
+| [`chapters/conclusion.tex`](chapters/conclusion.tex) | Глава 4 |
+| [`chapters/appendix.tex`](chapters/appendix.tex) | Приложение А (E3, E8, E13) |
 
+Черновики Markdown (локально, не в git): `docs/front_matter.md`, `docs/literature_review_academic.md`, `docs/experiments_chapter.md`, `docs/conclusion_chapter.md`, `docs/appendix.md`.
 
 ## Быстрый старт
 
@@ -39,7 +42,7 @@ python -m scripts.prepare_open_bandit --download --behavior-policy random --camp
 .\run_all.ps1
 ```
 
-`run_all.ps1` прогоняет: pytest → E1/E2/E8b (`run_full_experiments`) → `full_report.json` → E4 → E11 → E14 → gap-сценарии → **E12** → **E13** → рисунки. **E9** (полный OBD, ~1,4M событий) — только если локально есть `data/obd_full/`; иначе шаг пропускается с предупреждением. Команды E9 вручную — в `[docs/internal/experiments_worklog.md](docs/internal/experiments_worklog.md)`.
+`run_all.ps1` прогоняет: pytest → E1/E2/E8b (`run_full_experiments`) → `full_report.json` → E4 → E11 → E14 → gap-сценарии → **E12** → **E13** → рисунки. **E9** (полный OBD, ~1,4M событий) — только если локально есть `data/obd_full/`; иначе шаг пропускается с предупреждением. Команды E9 вручную — в `docs/internal/experiments_worklog.md` (локальный журнал).
 
 Рисунки для гл. 3: `outputs/figures/fig_3_*.png` (8 файлов) — **в git**; пересборка: `scripts/generate_coursework_figures.py` или `.\run_all.ps1`.
 
@@ -55,17 +58,15 @@ python -m scripts.prepare_open_bandit --download --behavior-policy random --camp
 
 ## Структура кода
 
-
-| Путь                                         | Назначение                                       |
-| -------------------------------------------- | ------------------------------------------------ |
-| `src/bandits/`                               | Политики: `fixed_ab`, ε-greedy, UCB1, TS, LinUCB |
-| `src/environments/`                          | Синтетика, contextual, logged clicks             |
-| `src/ope/`                                   | IPS/SNIPS replay-OPE                             |
-| `src/ab_testing/`                            | Inference, IPS, sequential (E11, E14)            |
-| `src/experiments/`                           | Прогоны E1–E14, P1, сборка `full_report.json`    |
-| `tests/`                                     | pytest                                           |
-| `notebooks/03_ablation_and_discussion.ipynb` | Абляции ε, priors, batch_size (рис. 3.6–3.8)     |
-
+| Путь | Назначение |
+|------|------------|
+| `src/bandits/` | Политики: `fixed_ab`, ε-greedy, UCB1, TS, LinUCB |
+| `src/environments/` | Синтетика, contextual, logged clicks |
+| `src/ope/` | IPS/SNIPS replay-OPE |
+| `src/ab_testing/` | Статистический вывод, IPS, последовательные тесты (E11, E14) |
+| `src/experiments/` | Прогоны E1–E14, P1, сборка `full_report.json` |
+| `tests/` | pytest |
+| `notebooks/03_ablation_and_discussion.ipynb` | Абляции ε, априорные параметры Beta, batch_size (рис. 3.6–3.8) |
 
 ### Режимы `compare_ab_vs_bandits`
 
@@ -92,7 +93,6 @@ Linux/macOS: `bash run_all.sh` (аналог `run_all.ps1`).
 
 ## Ограничения
 
-- `batch`-режим — приближение, не counterfactual OPE; для честной офлайн-оценки — `ope` + propensity + опциональный bootstrap SNIPS (`--bootstrap`).
+- `batch`-режим — приближение, не контрфактическая OPE; для честной офлайн-оценки — `ope` + propensity + опциональный bootstrap SNIPS (`--bootstrap`).
 - DR описан в §4.3, в коде не реализован. CUPED — E15 на синтетике (`cuped_power_study.py`).
-- `FixedABPolicy` — только allocation; вывод — `src/ab_testing/`.
-
+- `FixedABPolicy` — только allocation; статистический вывод — `src/ab_testing/`.

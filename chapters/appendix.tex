@@ -1,0 +1,331 @@
+\section*{Приложение А. Протоколы вспомогательных экспериментов}\addcontentsline{toc}{section}{Приложение А. Протоколы вспомогательных экспериментов}
+
+Материал не входит в основной нарратив главы 3 (§3.5--3.8): в тексте курсовой приведены E1--E14 и P1; разведочные batch-прогоны \textbf{E3} и \textbf{E8} и иллюстративная pairwise-проекция \textbf{E13} вынесены сюда, чтобы не смешивать IPS/SNIPS replay-OPE (E2/E9) с приближённым batch-симулятором и постфактумной проекцией логов на пару вариантов A и B.
+
+\textbf{Воспроизведение:} модули в \texttt{src/experiments/}; данные OBD --- через \texttt{scripts/prepare\_open\_bandit.py}. Сводные CSV --- в \texttt{outputs/} (часть закоммичена для сверки с текстом; полные прогоны --- \texttt{run\_all.ps1} / \texttt{run\_all.sh}).
+
+\subsection*{А.0. Почему batch-режим и replay-OPE разделены}\addcontentsline{toc}{subsection}{А.0. Почему batch-режим и replay-OPE разделены}\label{ux430.0.-ux43fux43eux447ux435ux43cux443-batch-ux440ux435ux436ux438ux43c-ux438-replay-ope-ux440ux430ux437ux434ux435ux43bux435ux43dux44b}
+
+В репозитории три режима работы с логами OBD:
+
+\begingroup\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\linewidth}{@{}
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y@{}}
+\toprule\noalign{}
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\textbf{IPS/SNIPS replay-OPE} & \texttt{compare\_ab\_vs\_bandits\ -\/-mode\ ope} & Да (replay + SNIPS; политика-кандидат \textbf{заморожена}, \texttt{freeze\_policy=True}) & Обязательна & E2, E2b/c, E9, E13 (OPE-часть) \\
+\textbf{batch-режим} & \texttt{-\/-mode\ batch} & Нет: при несовпадении руки награда \textbf{симулируется} по эмпирическому CTR (\texttt{LoggedClicksBanditEnv}) & Не для OPE & Только E3, E8 (приложение) \\
+\textbf{онлайн-синтетика} & \texttt{-\/-mode\ synthetic} & Оракул Bernoulli / contextual & --- & E1, E6, E8b, E12 \\
+\end{xltabular}
+\endgroup
+
+Пакетный режим удобен для отладки пайплайна и сравнения «скорости обучения» политик на реальном распределении контекстов, но не даёт корректной counterfactual-оценки для LinUCB и не заменяет IPS/SNIPS. Выводы о контекстных бандитах в курсовой опираются на \textbf{E8b} (контролируемая синтетика), а не на E8.
+
+\textbf{Исправление методологии replay-OPE (по рецензии).} В \texttt{src/ope/replay.py} и \texttt{obd\_streaming\_ope.py}: политика-кандидат не обновляется при оценке (\texttt{freeze\_policy}); propensity клипируется снизу (\texttt{propensity\_floor=0.01}); события перетасовываются per seed; знаменатель IPS --- число валидных строк лога, не общий объём файла.
+
+\subsection*{А.1. E3 --- проверочный batch-прогон на OBD}\addcontentsline{toc}{subsection}{А.1. E3 --- проверочный batch-прогон на OBD}\label{ux430.1.-e3-ux43fux440ux43eux432ux435ux440ux43eux447ux43dux44bux439-batch-ux43fux440ux43eux433ux43eux43d-ux43dux430-obd}
+
+\subsubsection{Цель}\label{ux446ux435ux43bux44c}
+
+Разведочная проверка, что batch-обновление политик (\texttt{batch\_size\ \textgreater{}\ 1}) на потоке событий OBD технически работает: загрузка логов, цикл \texttt{select\_arm} → \texttt{update}, агрегация reward/regret.
+
+\subsubsection{Постановка}\label{ux43fux43eux441ux442ux430ux43dux43eux432ux43aux430}
+
+\begingroup\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\linewidth}{@{}
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y@{}}
+\toprule\noalign{}
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Данные & \texttt{random/all}, 10 000 событий (малый релиз OBD) \\
+Режим & \texttt{batch} (\texttt{LoggedClicksBanditEnv}) \\
+\texttt{batch\_size} & 200 \\
+Политики & \texttt{fixed\_ab}, \texttt{thompson\_sampling}, \texttt{epsilon\_greedy} (типовой набор) \\
+Seeds & 2 \\
+Горизонт & Все события файла (10k) \\
+\end{xltabular}
+\endgroup
+
+\subsubsection{Механика награды}\label{ux43cux435ux445ux430ux43dux438ux43aux430-ux43dux430ux433ux440ux430ux434ux44b}
+
+Если выбранная политикой рука \textbf{совпадает} с залогированной в событии --- используется наблюдаемый клик. Иначе награда \textbf{сэмплируется} из Bernoulli с CTR, оценённым по эмпирике лога для этой руки (сглаживание Beta(1,1)). Это не counterfactual из production-модели и не IPS/SNIPS replay-OPE.
+
+\subsubsection{Команда}\label{ux43aux43eux43cux430ux43dux434ux430}
+
+\begin{pythoncode}
+python -m scripts.prepare_open_bandit --download --behavior-policy random --campaign all --include-context --output-path data/processed/obd_events.csv
+python -m src.experiments.compare_ab_vs_bandits --mode batch `
+  --events-path data/processed/obd_events.csv `
+  --seeds 2 --batch-size 200 `
+  --output-dir outputs/obd_batch_smoke
+\end{pythoncode}
+
+
+\subsubsection{Результат и статус}\label{ux440ux435ux437ux443ux43bux44cux442ux430ux442-ux438-ux441ux442ux430ux442ux443ux441}
+
+\begin{itemize}
+\tightlist
+\item
+  Артефакты: \texttt{outputs/obd\_batch\_smoke/} (summary, results по seed).
+\item
+  Ранжирование политик в основном тексте не интерпретируется.
+\item
+  E3 подтверждает работоспособность batch-пайплайна перед E8; для продуктовых выводов используются E2/E9.
+\end{itemize}
+
+\subsection*{А.2. E8 --- batch-режим с контекстом на OBD (LinUCB / TS)}\addcontentsline{toc}{subsection}{А.2. E8 --- batch-режим с контекстом на OBD (LinUCB / TS)}\label{ux430.2.-e8-batch-ux440ux435ux436ux438ux43c-ux441-ux43aux43eux43dux442ux435ux43aux441ux442ux43eux43c-ux43dux430-obd-linucb-ts}
+
+\subsubsection{Цель}\label{ux446ux435ux43bux44c-1}
+
+Перенести контекстные политики (\texttt{linucb}, \texttt{thompson\_sampling}, \texttt{fixed\_ab}) на реальные логи OBD в том же batch-режиме, что и E3, с признаками из \texttt{item\_context.csv}.
+
+\subsubsection{Постановка}\label{ux43fux43eux441ux442ux430ux43dux43eux432ux43aux430-1}
+
+\begingroup\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\linewidth}{@{}
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y@{}}
+\toprule\noalign{}
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Данные & \texttt{data/processed/obd\_events.csv}, \texttt{random/all}, 10 000 событий \\
+Режим & \texttt{batch}, \texttt{batch\_size\ =\ 200} \\
+Политики & \texttt{fixed\_ab}, \texttt{thompson\_sampling}, \texttt{linucb} \\
+Seeds & 20 (полный прогон в \texttt{run\_full\_experiments}) \\
+\texttt{context\_dim} & Из лога (7 признаков при \texttt{-\/-include-context}) \\
+\end{xltabular}
+\endgroup
+
+\subsubsection{Команда}\label{ux43aux43eux43cux430ux43dux434ux430-1}
+
+\begin{pythoncode}
+python -m src.experiments.run_full_experiments
+# блок E8 → outputs/extended_full/e8_obd_batch_contextual/
+\end{pythoncode}
+
+
+или:
+
+\begin{pythoncode}
+python -m src.experiments.compare_ab_vs_bandits --mode batch `
+  --events-path data/processed/obd_events.csv `
+  --policies fixed_ab,thompson_sampling,linucb `
+  --seeds 20 --batch-size 200 --include-context `
+  --output-dir outputs/extended_full/e8_obd_batch_contextual
+\end{pythoncode}
+
+
+\subsubsection{\texorpdfstring{Эмпирические итоги (20 seed, агрегат в \texttt{full\_report.json})}{Эмпирические итоги (20 seed, агрегат в full\_report.json)}}\label{ux44dux43cux43fux438ux440ux438ux447ux435ux441ux43aux438ux435-ux438ux442ux43eux433ux438-20-seed-ux430ux433ux440ux435ux433ux430ux442-ux432-full_report.json}
+
+\begingroup\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\linewidth}{@{}
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y@{}}
+\toprule\noalign{}
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+thompson\_sampling & 131,3 & 213,5 & 0,976 \\
+linucb & 119,3 & 225,6 & 0,980 \\
+fixed\_ab & 112,7 & 232,2 & 0,987 \\
+\end{xltabular}
+\endgroup
+
+TS показывает наименьший regret в batch-режиме, LinUCB --- между TS и \texttt{fixed\_ab}.
+
+\subsubsection{Почему E8 не в основном тексте}\label{ux43fux43eux447ux435ux43cux443-e8-ux43dux435-ux432-ux43eux441ux43dux43eux432ux43dux43eux43c-ux442ux435ux43aux441ux442ux435}
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  \textbf{Нет counterfactual для контекстной модели} --- при выборе руки, отличной от залогированной, награда берётся из упрощённого CTR-prior, а не из модели с контекстом.
+\item
+  \textbf{Нельзя сопоставить с E8b} --- на синтетике (E8b) LinUCB использует истинную связь контекст → CTR; на OBD в batch-режиме это приближение.
+\item
+  \textbf{Вывод о LinUCB} в курсовой сделан по \textbf{E8b} (§3.6.1) с bootstrap; OPE для LinUCB на full OBD не запускался (P1: \textasciitilde23 ms/decision при 80 руках).
+\end{enumerate}
+
+E8 сохранён как документация применения batch-режима к реальным логам, без включения в продуктовую матрицу решений.
+
+\subsection*{А.3. E13 --- pairwise-проекция OBD}\addcontentsline{toc}{subsection}{А.3. E13 --- pairwise-проекция OBD}\label{ux430.3.-e13-pairwise-ux43fux440ux43eux435ux43aux446ux438ux44f-obd}
+
+\subsubsection{Цель (RQ7, иллюстрация)}\label{ux446ux435ux43bux44c-rq7-ux438ux43bux43bux44eux441ux442ux440ux430ux446ux438ux44f}
+
+Связать \textbf{80-ручный} каталог OBD с классической A/B-постановкой (вариант A vs вариант B, гипотеза CTR\_B \textgreater{} CTR\_A): показать, как меняются \textbf{доля совпадений с логом}, \textbf{ESS} и exploratory inference при сужении до двух \texttt{item\_id}. Это \textbf{методологический мост}, а не замена отдельного A/B-эксперимента с фиксированным split (проверка гипотезы --- E12 + E4 в основном тексте).
+
+\subsubsection{\texorpdfstring{Этап 1. EDA и выбор пары (\texttt{obd\_pair\_selection.py})}{Этап 1. EDA и выбор пары (obd\_pair\_selection.py)}}\label{ux44dux442ux430ux43f-1.-eda-ux438-ux432ux44bux431ux43eux440-ux43fux430ux440ux44b-obd_pair_selection.py}
+
+\begingroup\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\linewidth}{@{}
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y@{}}
+\toprule\noalign{}
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Источник & \texttt{data/raw/obd\_random\_all.csv} (10k, \texttt{random/all}) \\
+Пул кандидатов & Топ-20 \texttt{item\_id} по числу показов \\
+\texttt{min\_impressions} & 100 на товар в пуле \\
+Критерий выбора & Минимальный \\
+\end{xltabular}
+\endgroup
+
+\textbf{Выбранная пара:} \texttt{item\_id} \textbf{41} и \textbf{50}.
+
+\begingroup\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\linewidth}{@{}lll@{}}
+\toprule\noalign{}
+& item 41 & item 50 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Показы & 136 & 136 \\
+Клики & 1 & 1 \\
+CTR & 0,735\% & 0,735\% \\
+& gap & \\
+\end{xltabular}
+\endgroup
+
+Артефакты: \texttt{outputs/obd\_pair/item\_ctr\_stats.csv}, \texttt{pair\_selection.csv}, \texttt{pair\_selection.json}.
+
+\begin{pythoncode}
+python -m src.experiments.obd_pair_selection --output-dir outputs/obd_pair
+\end{pythoncode}
+
+
+\subsubsection{Этап 2. Проекция лога}\label{ux44dux442ux430ux43f-2.-ux43fux440ux43eux435ux43aux446ux438ux44f-ux43bux43eux433ux430}
+
+Скрипт \texttt{obd\_pairwise\_ope.py} / \texttt{convert\_obd\_to\_pairwise\_events}:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Оставляются строки с \texttt{item\_id\ $\in$\ \{41,\ 50\}}.
+\item
+  Ремап в руки: 0 (control) и 1 (treatment).
+\item
+  Сохраняется \texttt{propensity} из исходного лога (random logging policy).
+\end{enumerate}
+
+Итого \textbf{272 события} (\textasciitilde\textasciitilde2,7\% исходного лога 10k), по \textbf{\textasciitilde\textasciitilde1 клику на руку} --- недостаточно для выводов о превосходстве варианта.
+
+\subsubsection{Этап 3. IPS/SNIPS replay-OPE на 2 руках}\label{ux44dux442ux430ux43f-3.-ipssnips-replay-ope-ux43dux430-2-ux440ux443ux43aux430ux445}
+
+\begingroup\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\linewidth}{@{}
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y@{}}
+\toprule\noalign{}
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Оценщик & SNIPS (тот же \texttt{ope/replay.py}, что E2) \\
+Политики-кандидаты & \texttt{fixed\_ab}, \texttt{thompson\_sampling}, \texttt{epsilon\_greedy}, \texttt{ucb1} \\
+Seeds & 10 \\
+\end{xltabular}
+\endgroup
+
+Типичные значения на проекции:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{доля совпадений с логом} $\approx$ 48--53\% (против \textasciitilde1,3\% при 80 руках в E2) --- метрика становится читаемой;
+\item
+  \textbf{ESS} (\texttt{fixed\_ab}) $\approx$ 130--145 при 272 событиях --- сопоставимо с ESS $\approx$ 130 на 10k в 80-ручной постановке;
+\item
+  \textbf{SNIPS} между политиками и seed \textbf{нестабилен} (единицы кликов, дискретность).
+\end{itemize}
+
+Артефакт: \texttt{outputs/obd\_pair/ope\_summary.csv}.
+
+\subsubsection{Этап 4. Exploratory inference}\label{ux44dux442ux430ux43f-4.-exploratory-inference}
+
+На том же pairwise-логе однократно:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{наивный A/B} (z-критерий, CTR\_B \textgreater{} CTR\_A);
+\item
+  \textbf{IPS-weighted} pairwise inference.
+\end{itemize}
+
+При квази-null (gap = 0): \texttt{p\_value\ =\ 1}, \texttt{reject\_null\ =\ False} --- ожидаемо. Артефакт: \texttt{outputs/obd\_pair/inference\_summary.csv}.
+
+\begin{pythoncode}
+python -m src.experiments.obd_pairwise_ope --output-dir outputs/obd_pair
+\end{pythoncode}
+
+
+\subsubsection{Сравнение с multi-arm OBD (смысл E13)}\label{ux441ux440ux430ux432ux43dux435ux43dux438ux435-ux441-multi-arm-obd-ux441ux43cux44bux441ux43b-e13}
+
+\begingroup\footnotesize\setlength{\tabcolsep}{4pt}
+\begin{xltabular}{\linewidth}{@{}
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y
+  >{\raggedright\arraybackslash}Y@{}}
+\toprule\noalign{}
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Вопрос & Ранжирование политик на 80 товарах & Поведение метрик на 2 «вариантах» \\
+Руки & 80 & 2 \\
+События & 10k -- 1,37M & 272 \\
+ESS (\texttt{fixed\_ab}) & 130 -- 17 243 & \textasciitilde137 \\
+Acceptance & \textasciitilde1,3\% (80 рук) & \textasciitilde50\% \\
+Вывод для продукта & Ранжирование хрупко при low CTR & Иллюстрация интерпретируемости, \textbf{не} дизайн A/B \\
+\end{xltabular}
+\endgroup
+
+Подробное сравнение --- \textbf{табл. 3.19} главы 3; онлайн- и inference-часть pairwise --- \textbf{E12} (синтетика, основной текст).
+
+\subsection*{А.4. Сводка команд воспроизведения}\addcontentsline{toc}{subsection}{А.4. Сводка команд воспроизведения}\label{ux430.4.-ux441ux432ux43eux434ux43aux430-ux43aux43eux43cux430ux43dux434-ux432ux43eux441ux43fux440ux43eux438ux437ux432ux435ux434ux435ux43dux438ux44f}
+
+\begin{pythoncode}
+# Данные OBD (10k)
+python -m scripts.prepare_open_bandit --download --behavior-policy random --campaign all --include-context --output-path data/processed/obd_events.csv
+# E3 — проверочный batch-прогон
+python -m src.experiments.compare_ab_vs_bandits --mode batch --events-path data/processed/obd_events.csv --seeds 2 --batch-size 200 --output-dir outputs/obd_batch_smoke
+# E8 — batch-режим + context (или через run_full_experiments)
+python -m src.experiments.run_full_experiments
+# E13 — pairwise
+python -m src.experiments.obd_pair_selection --output-dir outputs/obd_pair
+python -m src.experiments.obd_pairwise_ope --output-dir outputs/obd_pair
+\end{pythoncode}
+
+
+Полный прогон основных экспериментов (без обязательного повтора E3): \texttt{.\textbackslash{}run\_all.ps1} (E12, E13 включены; E3/E8 --- по командам выше).
+
+\subsection*{А.5. Ограничения приложения}\addcontentsline{toc}{subsection}{А.5. Ограничения приложения}\label{ux430.5.-ux43eux433ux440ux430ux43dux438ux447ux435ux43dux438ux44f-ux43fux440ux438ux43bux43eux436ux435ux43dux438ux44f}
+
+\begin{itemize}
+\tightlist
+\item
+  E3/E8 \textbf{не} реализуют DR \cite{ref27} и \textbf{не} проходят проверки replay-OPE из §3.6.3.
+\item
+  E13 \textbf{не} фиксирует propensity под гипотезой «две версии одного SKU»; это постфактумный фильтр по \texttt{item\_id}.
+\item
+  При другом random seed выбора пары или другом \texttt{min\_impressions} пара 41/50 может смениться --- протокол воспроизводим при фиксированном \texttt{pair\_selection.csv}.
+\end{itemize}

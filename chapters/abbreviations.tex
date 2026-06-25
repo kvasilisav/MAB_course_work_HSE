@@ -1,0 +1,31 @@
+\clearpage
+\section*{Сокращения}
+\addcontentsline{toc}{section}{Сокращения}
+
+\begingroup\small\setlength{\tabcolsep}{5pt}\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.20\linewidth}>{\raggedright\arraybackslash}X@{}}
+\toprule
+Сокращение & Расшифровка \\
+\midrule
+A/B & сплит-тест: сравнение контрольного (A) и тестового (B) вариантов \\
+CTR & click-through rate --- доля кликов (отношение кликов к числу показов) \\
+MAB & multi-armed bandit --- многорукий бандит: адаптивный выбор среди нескольких вариантов с целью максимизации награды \\
+OPE & off-policy evaluation --- офлайн-оценка политики по логам без запуска нового эксперимента \\
+replay-OPE & воспроизведение исторических логов с пересчётом весов (IPS/SNIPS) для оценки политики, отличной от той, что собирала логи \\
+propensity & propensity score --- вероятность назначения варианта политикой логирования при сборе лога; в OBD записывается в поле \texttt{propensity\_score}; нужна для корректного IPS/SNIPS и постфактумного статистического вывода \\
+IPS / SNIPS & inverse / self-normalized propensity scoring --- взвешивание наблюдений обратными вероятностями назначения варианта \\
+ESS & effective sample size --- эффективный размер выборки после IPS-взвешивания \\
+доля совпадений с логом & acceptance rate --- при replay-OPE доля событий, где рука политики-кандидата совпадает с залогированной; диагностика пригодности оценки наряду с ESS \\
+OBD & Open Bandit Dataset --- открытый датасет логов fashion e-commerce с propensity \\
+OBF & границы O'Brien--Fleming --- пороги отсечения в последовательном групповом дизайне эксперимента (group sequential design): анализ на заранее заданных промежуточных срезах горизонта с контролем ошибки I рода \\
+suboptimal\_share & доля шагов, на которых показан не лучший вариант; при фиксированном A/B с K руками теоретически $\approx$ 1 $-$ 1/K \\
+mSPRT & mixture sequential probability ratio test --- последовательный тест; в сочетании с always-valid inference даёт корректный вывод при непрерывном мониторинге A/B без завышения ошибки I рода \\
+always-valid inference & методы статистического вывода, сохраняющие контроль ошибки I рода при произвольном моменте остановки эксперимента (напр., mSPRT, OBF) \\
+BTS & Bernoulli Thompson Sampling --- адаптивная политика логирования в OBD \\
+DR & doubly robust estimator --- двойно робастная оценка, сочетающая IPS и модель награды \\
+CUPED & controlled-experiment using pre-experiment data --- снижение дисперсии оценки эффекта за счёт доэкспериментальных ковариат \\
+MDE & minimum detectable effect --- минимальный детектируемый эффект при заданной мощности теста \\
+batch-режим & пакетная обработка логов: политика обновляется после накопления пакета событий (\texttt{batch\_size} > 1), а не после каждого шага; разведочный пакетный прогон (E3, E8) --- быстрая проверка пайплайна, не IPS/SNIPS replay-OPE \\
+\bottomrule
+\end{tabularx}
+\endgroup
